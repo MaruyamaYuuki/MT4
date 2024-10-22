@@ -9,14 +9,14 @@ KamataEngine::Matrix4x4 MakeRotateAxisAngle(const KamataEngine::Vector3& axise, 
 	KamataEngine::Matrix4x4 result = KamataEngine::MathUtility::MakeIdentityMatrix();
 	result.m[0][0] = (axise.x * axise.x) * (1 - std::cos(angle)) + std::cos(angle);
 	result.m[0][1] = axise.x * (axise.y * (1 - std::cos(angle))) + (axise.z * std::sin(angle));
-	result.m[0][3] = axise.x * (axise.z * (1 - std::cos(angle))) + (axise.y * std::sin(angle));
+	result.m[0][2] = axise.x * (axise.z * (1 - std::cos(angle))) - (axise.y * std::sin(angle));
 
-	result.m[1][0] = axise.x * (axise.y * (1 - std::cos(angle))) + (axise.z * std::cos(angle));
+	result.m[1][0] = axise.x * (axise.y * (1 - std::cos(angle))) - (axise.z * std::sin(angle));
 	result.m[1][1] = (axise.y * axise.y) * (1 - std::cos(angle)) + std::cos(angle);
-	result.m[1][2] = axise.y * (axise.z * (1 - std::cos(angle))) - (axise.x * std::sin(angle));
+	result.m[1][2] = axise.y * (axise.z * (1 - std::cos(angle))) + (axise.x * std::sin(angle));
 
-	result.m[2][0] = axise.x * (axise.z * (1 - std::cos(angle))) - (axise.y * std::sin(angle));
-	result.m[2][1] = axise.y * (axise.z * (1 - std::cos(angle))) + (axise.x * std::sin(angle));
+	result.m[2][0] = axise.x * (axise.z * (1 - std::cos(angle))) + (axise.y * std::sin(angle));
+	result.m[2][1] = axise.y * (axise.z * (1 - std::cos(angle))) - (axise.x * std::sin(angle));
 	result.m[2][2] = (axise.z * axise.z) * (1 - std::cos(angle)) + std::cos(angle);
 	return result;
 }
@@ -27,7 +27,7 @@ void MatrixScreenPrint(int x, int y, const KamataEngine::Matrix4x4& matrix, cons
 	Novice::ScreenPrintf(x, y, "%s", label);
 	for (int row = 0; row < 4; ++row) {
 		for (int column = 0; column < 4; ++column) {
-			Novice::ScreenPrintf(x + column * kColumnWidth, y + row * kRowHeight + kRowHeight, "%6.02f", matrix.m[row][column]);
+			Novice::ScreenPrintf(x + column * kColumnWidth, y + row * kRowHeight + kRowHeight, "%6.03f", matrix.m[row][column]);
 		}
 	}
 }
