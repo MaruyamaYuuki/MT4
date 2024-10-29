@@ -5,19 +5,19 @@
 #include "math/MathUtility.h"
 
 const char kWindowTitle[] = "LE2C_24_マルヤマ_ユウキ";
-KamataEngine::Matrix4x4 MakeRotateAxisAngle(const KamataEngine::Vector3& axise, float angle) {
+KamataEngine::Matrix4x4 MakeRotateAxisAngle(const KamataEngine::Vector3& axis, float angle) {
 	KamataEngine::Matrix4x4 result = KamataEngine::MathUtility::MakeIdentityMatrix();
-	result.m[0][0] = (axise.x * axise.x) * (1 - std::cos(angle)) + std::cos(angle);
-	result.m[0][1] = axise.x * (axise.y * (1 - std::cos(angle))) + (axise.z * std::sin(angle));
-	result.m[0][2] = axise.x * (axise.z * (1 - std::cos(angle))) - (axise.y * std::sin(angle));
+	result.m[0][0] = (axis.x * axis.x) * (1 - std::cos(angle)) + std::cos(angle);
+	result.m[0][1] = axis.x * (axis.y * (1 - std::cos(angle))) + (axis.z * std::sin(angle));
+	result.m[0][2] = axis.x * (axis.z * (1 - std::cos(angle))) - (axis.y * std::sin(angle));
 
-	result.m[1][0] = axise.x * (axise.y * (1 - std::cos(angle))) - (axise.z * std::sin(angle));
-	result.m[1][1] = (axise.y * axise.y) * (1 - std::cos(angle)) + std::cos(angle);
-	result.m[1][2] = axise.y * (axise.z * (1 - std::cos(angle))) + (axise.x * std::sin(angle));
+	result.m[1][0] = axis.x * (axis.y * (1 - std::cos(angle))) - (axis.z * std::sin(angle));
+	result.m[1][1] = (axis.y * axis.y) * (1 - std::cos(angle)) + std::cos(angle);
+	result.m[1][2] = axis.y * (axis.z * (1 - std::cos(angle))) + (axis.x * std::sin(angle));
 
-	result.m[2][0] = axise.x * (axise.z * (1 - std::cos(angle))) + (axise.y * std::sin(angle));
-	result.m[2][1] = axise.y * (axise.z * (1 - std::cos(angle))) - (axise.x * std::sin(angle));
-	result.m[2][2] = (axise.z * axise.z) * (1 - std::cos(angle)) + std::cos(angle);
+	result.m[2][0] = axis.x * (axis.z * (1 - std::cos(angle))) + (axis.y * std::sin(angle));
+	result.m[2][1] = axis.y * (axis.z * (1 - std::cos(angle))) - (axis.x * std::sin(angle));
+	result.m[2][2] = (axis.z * axis.z) * (1 - std::cos(angle)) + std::cos(angle);
 	return result;
 }
 
