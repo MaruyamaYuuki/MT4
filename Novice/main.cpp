@@ -14,6 +14,16 @@ struct Quaternion {
 	float y;
 	float z;
 	float w;
+
+	// スカラー乗算
+	Quaternion operator*(float scalar) const {
+		return { w * scalar, x * scalar, y * scalar, z * scalar };
+	}
+
+	// クォータニオン加算
+	Quaternion operator+(const Quaternion& other) const {
+		return { w + other.w, x + other.x, y + other.y, z + other.z };
+	}
 };
 
 // Quaternionの積
@@ -147,6 +157,52 @@ Matrix4x4 MakeRotateMatrix(const Quaternion& quaternion) {
 	return matrix;
 }
 
+float DotQuaternion(const Quaternion& v1, const Quaternion& v2) {
+	float result;
+	result = v1.w * v2.w + v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	return result;
+}
+
+// 球面線形補間
+Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t) {
+	float dot = DotQuaternion(q0, q1);
+	Quaternion adjustedQ0 = q0;
+	float adjustedDot = dot;
+	if (dot < 0) {
+		adjustedQ0.x = -q0.x;
+		adjustedQ0.y = -q0.y;
+		adjustedQ0.z = -q0.z;
+		adjustedQ0.w = -q0.w;
+
+		dot = -adjustedDot;
+	}
+
+	// なす角を求める
+	const float epsilon = 1e-6f; // ゼロ割防止用の閾値
+	if (dot > 1.0f - epsilon) {
+		// ほぼ同じ方向の場合、線形補間を使用
+		Quaternion result = q0 * (1.0f - t) + adjustedQ0 * t;
+		// 正規化して返す
+		float length = std::sqrt(DotQuaternion(result, result));
+		return { result.w / length, result.x / length, result.y / length, result.z / length };
+	}
+
+	// なす角
+	float theta = std::acos(dot);
+	float sinTheta = std::sin(theta);
+
+	// 補間係数を計算
+	float scale0 = std::sin((1.0f - t) * theta) / sinTheta;
+	float scale1 = std::sin(t * theta) / sinTheta;
+
+	return {
+		adjustedQ0.x * scale0 + q1.x * scale1,
+		adjustedQ0.y * scale0 + q1.y * scale1,
+		adjustedQ0.z * scale0 + q1.z * scale1,
+		adjustedQ0.w * scale0 + q1.w * scale1
+	};
+}
+
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 void QuaternionScreenPrint(int x, int y, const Quaternion& quaternion, const char* ladel) {
@@ -183,9 +239,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	Vector3 vector = { 1.0f,0.4f,-0.2f };
-	Vector3 pointY = { 2.1f,-0.9f,1.3f };
-
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -199,11 +252,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		Quaternion rotation = MakeRotateAxisAngleQuaternion(
-			MathUtility::Normalize(vector), 0.45f);
-		Matrix4x4 rotateMatrix = MakeRotateMatrix(rotation);
-		Vector3 rotateByQuaternion = RotateVector(pointY, rotation);
-		Vector3 rotateByMatrix = MathUtility::Transform(pointY, rotateMatrix);
+		Quaternion rotation0 = MakeRotateAxisAngleQuaternion({ 0.71f,0.71f,0.0f }, 0.3f);
+		Quaternion rotation1 = MakeRotateAxisAngleQuaternion({ 0.71f,0.0f,0.71f }, 3.141592f);
+
+		Quaternion interpolate0 = Slerp(rotation0, rotation1, 0.0f);
+		Quaternion interpolate1 = Slerp(rotation0, rotation1, 0.3f);
+		Quaternion interpolate2 = Slerp(rotation0, rotation1, 0.5f);
+		Quaternion interpolate3 = Slerp(rotation0, rotation1, 0.7f);
+		Quaternion interpolate4 = Slerp(rotation0, rotation1, 1.0f);
 
 		///
 		/// ↑更新処理ここまで
@@ -213,10 +269,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		QuaternionScreenPrint(0, kRowHeight * 0, rotation, " : rotation");
-		MatrixScreenPrint(0, kRowHeight * 1, rotateMatrix, "rotateMatrix");
-		VectorScreenPrint(0, kRowHeight * 6, rotateByQuaternion, " : rotatebyQuaternion");
-		VectorScreenPrint(0, kRowHeight * 7, rotateByMatrix, " : rotateByMatrix");
+		QuaternionScreenPrint(0, kRowHeight * 0, interpolate0, " : interpolate0, Slerp(q0, q1, 0.0f)");
+		QuaternionScreenPrint(0, kRowHeight * 1, interpolate1, " : interpolate1, Slerp(q0, q1, 0.3f)");
+		QuaternionScreenPrint(0, kRowHeight * 2, interpolate2, " : interpolate2, Slerp(q0, q1, 0.5f)");
+		QuaternionScreenPrint(0, kRowHeight * 3, interpolate3, " : interpolate3 Slerp(q0, q1, 0.7f)");
+		QuaternionScreenPrint(0, kRowHeight * 4, interpolate4, " : interpolate4, Slerp(q0, q1, 1.0f)");
 
 		///
 		/// ↑描画処理ここまで
